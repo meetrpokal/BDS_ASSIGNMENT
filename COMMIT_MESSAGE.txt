@@ -1,0 +1,1 @@
+chore: add requirements files and extend .gitignore

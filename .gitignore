@@ -1,0 +1,19 @@
+data
+models
+output
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Notebooks / editors
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# Secrets
+kaggle.json
+.streamlit/secrets.toml

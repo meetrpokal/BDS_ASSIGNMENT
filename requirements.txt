@@ -1,0 +1,4 @@
+pyspark>=3.3
+pandas>=1.5
+streamlit>=1.30
+plotly>=5.18
