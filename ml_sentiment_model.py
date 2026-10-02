@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 import time
@@ -46,6 +47,21 @@ import config
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Train Amazon review sentiment and rating models with PySpark.")
+    parser.add_argument("--master", default=None,
+                        help=f"Spark master URL (default: {config.MASTER_URL}). Use local[*] on one machine.")
+    parser.add_argument("--sample-fraction", type=float, default=None,
+                        help=f"Fraction of reviews to train on, 0 < f <= 1 (default: {config.SAMPLE_FRACTION}).")
+    args = parser.parse_args()
+    if args.sample_fraction is not None and not 0 < args.sample_fraction <= 1:
+        parser.error("--sample-fraction must be greater than 0 and at most 1")
+    return args
+
+
+args = parse_args()
+
 start_time = time.time()
 print("=" * 80)
 print("AMAZON REVIEWS - MACHINE LEARNING MODEL TRAINING (CLUSTER)")
@@ -53,7 +69,7 @@ print("=" * 80)
 print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print("=" * 80)
 
-MASTER_URL = config.MASTER_URL
+MASTER_URL = args.master or config.MASTER_URL
 APP_NAME = config.APP_NAME
 
 spark = (
@@ -184,7 +200,7 @@ df_ml = df_ml.withColumn(
     when(col("verified_purchase") == "Y", 1.0).otherwise(0.0)
 )
 
-sample_fraction = config.SAMPLE_FRACTION
+sample_fraction = args.sample_fraction if args.sample_fraction is not None else config.SAMPLE_FRACTION
 df_ml = df_ml.sample(fraction=sample_fraction, seed=config.RANDOM_SEED)
 df_ml.cache()
 
