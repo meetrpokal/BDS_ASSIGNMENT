@@ -259,6 +259,7 @@ if config.is_cluster(MASTER_URL):
 train_start = time.time()
 model_lr = pipeline_lr.fit(train_binary)
 train_time = time.time() - train_start
+lr_train_time = train_time
 
 print(f"Model trained in {train_time:.2f} seconds")
 print(f"  Training speed: {train_count / train_time:,.0f} samples/second")
@@ -313,6 +314,7 @@ print("Training Random Forest model (50 trees, max depth 10)...")
 train_start = time.time()
 model_rf = pipeline_rf.fit(train_binary)
 train_time = time.time() - train_start
+rf_train_time = train_time
 print(f"Model trained in {train_time:.2f} seconds")
 
 predictions_rf = model_rf.transform(test_binary)
@@ -353,6 +355,7 @@ print("Training Naive Bayes model (3 classes)...")
 train_start = time.time()
 model_nb = pipeline_nb.fit(train_multi)
 train_time = time.time() - train_start
+nb_train_time = train_time
 print(f"Model trained in {train_time:.2f} seconds")
 
 predictions_nb = model_nb.transform(test_multi)
@@ -386,6 +389,7 @@ print("Training Linear Regression model...")
 train_start = time.time()
 model_lr_reg = pipeline_lr_reg.fit(train_rating)
 train_time = time.time() - train_start
+reg_train_time = train_time
 print(f"Model trained in {train_time:.2f} seconds")
 
 predictions_rating = model_lr_reg.transform(test_rating)
@@ -431,6 +435,12 @@ comparison_data = {
         f"Acc: {accuracy_rf:.4f} / F1: {f1_rf:.4f}",
         f"F1: {f1_nb:.4f}",
         f"R2: {r2:.4f}"
+    ],
+    "Train_Time_Sec": [
+        round(lr_train_time, 2),
+        round(rf_train_time, 2),
+        round(nb_train_time, 2),
+        round(reg_train_time, 2)
     ]
 }
 
@@ -473,6 +483,7 @@ metadata = {
             "f1": float(f1),
             "precision": float(precision),
             "recall": float(recall),
+            "train_time_sec": round(lr_train_time, 2),
             "path": f"{MODELS_PATH}sentiment_lr_model"
         },
         "random_forest": {
@@ -480,12 +491,14 @@ metadata = {
             "auc": float(auc_rf),
             "accuracy": float(accuracy_rf),
             "f1": float(f1_rf),
+            "train_time_sec": round(rf_train_time, 2),
             "path": f"{MODELS_PATH}sentiment_rf_model"
         },
         "naive_bayes": {
             "type": "multi_class_classification",
             "accuracy": float(accuracy_nb),
             "f1": float(f1_nb),
+            "train_time_sec": round(nb_train_time, 2),
             "path": f"{MODELS_PATH}sentiment_nb_model"
         },
         "rating_prediction": {
@@ -493,6 +506,7 @@ metadata = {
             "rmse": float(rmse),
             "mae": float(mae),
             "r2": float(r2),
+            "train_time_sec": round(reg_train_time, 2),
             "path": f"{MODELS_PATH}rating_prediction_model"
         }
     }
