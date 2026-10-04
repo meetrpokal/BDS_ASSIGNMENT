@@ -322,11 +322,15 @@ predictions_rf = model_rf.transform(test_binary)
 auc_rf = binary_evaluator.evaluate(predictions_rf)
 accuracy_rf = multi_evaluator.evaluate(predictions_rf, {multi_evaluator.metricName: "accuracy"})
 f1_rf = multi_evaluator.evaluate(predictions_rf, {multi_evaluator.metricName: "f1"})
+precision_rf = multi_evaluator.evaluate(predictions_rf, {multi_evaluator.metricName: "weightedPrecision"})
+recall_rf = multi_evaluator.evaluate(predictions_rf, {multi_evaluator.metricName: "weightedRecall"})
 
 print("\nRandom Forest Performance:")
 print(f"  AUC-ROC: {auc_rf:.4f}")
 print(f"  Accuracy: {accuracy_rf:.4f} ({accuracy_rf * 100:.2f}%)")
 print(f"  F1 Score: {f1_rf:.4f}")
+print(f"  Precision: {precision_rf:.4f}")
+print(f"  Recall: {recall_rf:.4f}")
 
 model_rf.write().overwrite().save(f"{MODELS_PATH}sentiment_rf_model")
 print(f"Model saved: {MODELS_PATH}sentiment_rf_model")
@@ -362,10 +366,14 @@ predictions_nb = model_nb.transform(test_multi)
 
 accuracy_nb = multi_evaluator.evaluate(predictions_nb, {multi_evaluator.metricName: "accuracy"})
 f1_nb = multi_evaluator.evaluate(predictions_nb, {multi_evaluator.metricName: "f1"})
+precision_nb = multi_evaluator.evaluate(predictions_nb, {multi_evaluator.metricName: "weightedPrecision"})
+recall_nb = multi_evaluator.evaluate(predictions_nb, {multi_evaluator.metricName: "weightedRecall"})
 
 print("\nNaive Bayes Performance:")
 print(f"  Accuracy: {accuracy_nb:.4f} ({accuracy_nb * 100:.2f}%)")
 print(f"  F1 Score: {f1_nb:.4f}")
+print(f"  Precision: {precision_nb:.4f}")
+print(f"  Recall: {recall_nb:.4f}")
 
 model_nb.write().overwrite().save(f"{MODELS_PATH}sentiment_nb_model")
 print(f"Model saved: {MODELS_PATH}sentiment_nb_model")
@@ -491,6 +499,8 @@ metadata = {
             "auc": float(auc_rf),
             "accuracy": float(accuracy_rf),
             "f1": float(f1_rf),
+            "precision": float(precision_rf),
+            "recall": float(recall_rf),
             "train_time_sec": round(rf_train_time, 2),
             "path": f"{MODELS_PATH}sentiment_rf_model"
         },
@@ -498,6 +508,8 @@ metadata = {
             "type": "multi_class_classification",
             "accuracy": float(accuracy_nb),
             "f1": float(f1_nb),
+            "precision": float(precision_nb),
+            "recall": float(recall_nb),
             "train_time_sec": round(nb_train_time, 2),
             "path": f"{MODELS_PATH}sentiment_nb_model"
         },
