@@ -72,6 +72,18 @@ MODELS_DIR, OUTPUT_DIR = artifacts
 with open(os.path.join(MODELS_DIR, "model_metadata.json"), "r") as f:
     metadata = json.load(f)
 
+# Sidebar: details about the training run that produced these results
+with st.sidebar:
+    st.header("🧾 Training Run")
+    st.write(f"**Mode:** {str(metadata.get('mode', 'unknown')).title()}")
+    st.write(f"**Spark master:** `{metadata.get('master_url', 'n/a')}`")
+    st.write(f"**Trained on:** {metadata.get('total_samples', 0):,} reviews")
+    if 'raw_samples' in metadata:
+        st.write(f"**Raw dataset:** {metadata['raw_samples']:,} reviews")
+    if 'sample_fraction' in metadata:
+        st.write(f"**Sample fraction:** {metadata['sample_fraction'] * 100:.0f}%")
+    st.caption(f"Artifacts: `{MODELS_DIR}`")
+
 # Initialize Spark session for model loading (cached)
 @st.cache_resource
 def init_spark():
