@@ -55,7 +55,6 @@ st.markdown("""
 
 # Get current date/time in exact format
 current_datetime = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-current_user = "MayankSavaliya"
 
 st.title("🤖 Machine Learning Models Dashboard")
 st.markdown("**Amazon Reviews Sentiment Analysis** ")
@@ -151,7 +150,7 @@ with col1:
     st.markdown(f"""
     <div class='metric-card'>
         <div style='font-size: 40px; margin-bottom: 10px;'>🎯</div>
-        <div style='font-size: 28px; font-weight: 700; color: #232F3E;'>4</div>
+        <div style='font-size: 28px; font-weight: 700; color: #232F3E;'>{len(metadata['models'])}</div>
         <div style='font-size: 14px; color: #666; margin-top: 5px;'>ML Models Trained</div>
     </div>
     """, unsafe_allow_html=True)
@@ -176,7 +175,7 @@ with col3:
     """, unsafe_allow_html=True)
 
 with col4:
-    best_auc = metadata['models']['logistic_regression']['auc']
+    best_auc = max(m['auc'] for m in metadata['models'].values() if 'auc' in m)
     st.markdown(f"""
     <div class='metric-card'>
         <div style='font-size: 40px; margin-bottom: 10px;'>🏆</div>
