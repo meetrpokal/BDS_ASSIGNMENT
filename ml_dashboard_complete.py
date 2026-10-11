@@ -527,20 +527,52 @@ if os.path.exists(os.path.join(OUTPUT_DIR, "lr_predictions_sample.csv")):
         )
 
 # Confusion Matrix
-if os.path.exists(os.path.join(OUTPUT_DIR, "confusion_matrix.csv")):
+confusion_files = {
+    "Logistic Regression": "confusion_matrix.csv",
+    "Random Forest": "confusion_matrix_rf.csv",
+    "Naive Bayes (3-class)": "confusion_matrix_nb.csv",
+}
+available_matrices = {
+    name: file for name, file in confusion_files.items()
+    if os.path.exists(os.path.join(OUTPUT_DIR, file))
+}
+
+if available_matrices:
     st.header("📊 Confusion Matrix")
-    
-    confusion_df = load_csv(os.path.join(OUTPUT_DIR, "confusion_matrix.csv"))
-    confusion_pivot = confusion_df.pivot(index='label', columns='prediction', values='count').fillna(0)
-    
+
+    sel_col, norm_col = st.columns([2, 1])
+    with sel_col:
+        selected_model = st.selectbox("Model", list(available_matrices))
+    with norm_col:
+        as_percent = st.checkbox("Show row percentages", value=False)
+
+    confusion_df = load_csv(os.path.join(OUTPUT_DIR, available_matrices[selected_model]))
+
+    if selected_model.startswith("Naive Bayes"):
+        class_names = metadata['models'].get('naive_bayes', {}).get('labels')
+        if not class_names:
+            class_names = [str(i) for i in sorted(confusion_df['label'].unique())]
+        class_names = [str(name).title() for name in class_names]
+    else:
+        class_names = ['Negative', 'Positive']
+
+    index = range(len(class_names))
+    confusion_pivot = (
+        confusion_df.pivot(index='label', columns='prediction', values='count')
+        .reindex(index=index, columns=index)
+        .fillna(0)
+    )
+    if as_percent:
+        confusion_pivot = confusion_pivot.div(confusion_pivot.sum(axis=1).replace(0, 1), axis=0) * 100
+
     fig = px.imshow(
         confusion_pivot,
-        labels=dict(x="Predicted", y="Actual", color="Count"),
-        x=['Negative (0)', 'Positive (1)'],
-        y=['Negative (0)', 'Positive (1)'],
-        title='<b>Confusion Matrix - Logistic Regression Model</b>',
+        labels=dict(x="Predicted", y="Actual", color="Percent" if as_percent else "Count"),
+        x=class_names,
+        y=class_names,
+        title=f'<b>Confusion Matrix - {selected_model}</b>',
         color_continuous_scale='Blues',
-        text_auto=True,
+        text_auto='.1f' if as_percent else True,
         template='plotly_white'
     )
     fig.update_layout(height=400)
