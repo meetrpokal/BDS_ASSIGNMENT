@@ -68,9 +68,22 @@ if artifacts is None:
 
 MODELS_DIR, OUTPUT_DIR = artifacts
 
+
+@st.cache_data
+def load_json(path):
+    """Read a JSON file once and reuse it across Streamlit reruns."""
+    with open(path, "r") as f:
+        return json.load(f)
+
+
+@st.cache_data
+def load_csv(path):
+    """Read a CSV file once and reuse it across Streamlit reruns."""
+    return pd.read_csv(path)
+
+
 # Load metadata
-with open(os.path.join(MODELS_DIR, "model_metadata.json"), "r") as f:
-    metadata = json.load(f)
+metadata = load_json(os.path.join(MODELS_DIR, "model_metadata.json"))
 
 # Sidebar: details about the training run that produced these results
 with st.sidebar:
@@ -202,8 +215,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.header("📈 Model Performance Comparison")
 
 if os.path.exists(os.path.join(OUTPUT_DIR, "model_comparison.csv")):
-    comparison_df = pd.read_csv(os.path.join(OUTPUT_DIR, "model_comparison.csv"))
-    
+    comparison_df = load_csv(os.path.join(OUTPUT_DIR, "model_comparison.csv"))
+
     models_data = []
     for model_key, model_data in metadata['models'].items():
         if 'auc' in model_data:
@@ -436,7 +449,7 @@ if os.path.exists(os.path.join(OUTPUT_DIR, "lr_predictions_sample.csv")):
     st.header("📊 Sample Predictions from Test Set")
     
     with st.expander("View Sample Predictions", expanded=False):
-        sample_df = pd.read_csv(os.path.join(OUTPUT_DIR, "lr_predictions_sample.csv"))
+        sample_df = load_csv(os.path.join(OUTPUT_DIR, "lr_predictions_sample.csv")).copy()
         sample_df = sample_df.head(20)
         
         sample_df['Predicted Sentiment'] = sample_df['prediction'].map({1.0: 'Positive ✅', 0.0: 'Negative ❌'})
@@ -463,7 +476,7 @@ if os.path.exists(os.path.join(OUTPUT_DIR, "lr_predictions_sample.csv")):
 if os.path.exists(os.path.join(OUTPUT_DIR, "confusion_matrix.csv")):
     st.header("📊 Confusion Matrix")
     
-    confusion_df = pd.read_csv(os.path.join(OUTPUT_DIR, "confusion_matrix.csv"))
+    confusion_df = load_csv(os.path.join(OUTPUT_DIR, "confusion_matrix.csv"))
     confusion_pivot = confusion_df.pivot(index='label', columns='prediction', values='count').fillna(0)
     
     fig = px.imshow(
