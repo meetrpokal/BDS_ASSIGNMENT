@@ -302,6 +302,25 @@ if rating_metrics:
     c3.metric("R²", f"{rating_metrics['r2']:.4f}")
 
 # Feature importance
+importance_path = os.path.join(OUTPUT_DIR, "rf_feature_importance.csv")
+st.header("🌲 Random Forest Feature Importance")
+if os.path.exists(importance_path):
+    importance_df = load_csv(importance_path).sort_values("importance")
+    fig = px.bar(
+        importance_df,
+        x="importance",
+        y="feature",
+        orientation="h",
+        title="<b>Top Features by Importance</b>",
+        template="plotly_white",
+        color_discrete_sequence=["#FF9900"]
+    )
+    fig.update_layout(height=550, yaxis_title=None)
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption("tfidf_hash_N are hashed word buckets; the other features are review length, "
+               "word count, helpfulness ratio and verified purchase.")
+else:
+    st.info("Feature importance not found. Re-run `ml_sentiment_model.py` to generate it.")
 
 # Live Prediction
 st.header("🎯 Live Sentiment Prediction")
