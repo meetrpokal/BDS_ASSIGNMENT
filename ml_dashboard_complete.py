@@ -468,30 +468,44 @@ elif predict_button and not review_text:
 # Sample predictions
 if os.path.exists(os.path.join(OUTPUT_DIR, "lr_predictions_sample.csv")):
     st.header("📊 Sample Predictions from Test Set")
-    
+
     with st.expander("View Sample Predictions", expanded=False):
         sample_df = load_csv(os.path.join(OUTPUT_DIR, "lr_predictions_sample.csv")).copy()
-        sample_df = sample_df.head(20)
-        
+
         sample_df['Predicted Sentiment'] = sample_df['prediction'].map({1.0: 'Positive ✅', 0.0: 'Negative ❌'})
         sample_df['Actual Sentiment'] = sample_df['sentiment'].map({'positive': 'Positive ✅', 'negative': 'Negative ❌'})
-        
-        sample_df['Match'] = sample_df.apply(
-            lambda row: '✅ Correct' if (row['prediction'] == 1.0 and row['sentiment'] == 'positive') or 
-                                        (row['prediction'] == 0.0 and row['sentiment'] == 'negative') 
-            else '❌ Wrong', 
-            axis=1
+        is_correct = (
+            ((sample_df['prediction'] == 1.0) & (sample_df['sentiment'] == 'positive')) |
+            ((sample_df['prediction'] == 0.0) & (sample_df['sentiment'] == 'negative'))
         )
-        
+        sample_df['Match'] = is_correct.map({True: '✅ Correct', False: '❌ Wrong'})
+
+        # Accuracy is computed on the whole saved sample, not only the rows displayed
+        correct = int(is_correct.sum())
+        total = len(sample_df)
+        st.success(f"Sample Accuracy: {correct}/{total} = {correct / total * 100:.1f}%")
+
+        filter_col, rows_col = st.columns([2, 1])
+        with filter_col:
+            show = st.radio("Show", ["All", "Correct only", "Wrong only"], horizontal=True)
+        with rows_col:
+            if total > 5:
+                n_rows = st.slider("Rows", min_value=5, max_value=min(100, total), value=min(10, total))
+            else:
+                n_rows = total
+
+        if show == "Correct only":
+            view_df = sample_df[is_correct]
+        elif show == "Wrong only":
+            view_df = sample_df[~is_correct]
+        else:
+            view_df = sample_df
+
         st.dataframe(
-            sample_df[['review_body', 'Actual Sentiment', 'Predicted Sentiment', 'Match']].head(10),
+            view_df[['review_body', 'Actual Sentiment', 'Predicted Sentiment', 'Match']].head(n_rows),
             use_container_width=True,
             hide_index=True
         )
-        
-        correct = len(sample_df[sample_df['Match'] == '✅ Correct'])
-        total = len(sample_df)
-        st.success(f"Sample Accuracy: {correct}/{total} = {correct/total*100:.1f}%")
 
 # Confusion Matrix
 if os.path.exists(os.path.join(OUTPUT_DIR, "confusion_matrix.csv")):
