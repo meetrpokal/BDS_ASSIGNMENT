@@ -280,6 +280,27 @@ if os.path.exists(os.path.join(OUTPUT_DIR, "model_comparison.csv")):
                 hide_index=True
             )
 
+# Naive Bayes (multi-class) and star-rating regression metrics
+st.subheader("🧪 Other Models")
+
+nb_metrics = metadata['models'].get('naive_bayes')
+rating_metrics = metadata['models'].get('rating_prediction')
+
+if nb_metrics:
+    st.markdown("**Naive Bayes - 3-class sentiment (positive / neutral / negative)**")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Accuracy", f"{nb_metrics['accuracy']:.4f}")
+    c2.metric("F1 Score", f"{nb_metrics['f1']:.4f}")
+    if 'precision' in nb_metrics:
+        c3.metric("Precision", f"{nb_metrics['precision']:.4f}")
+
+if rating_metrics:
+    st.markdown("**Linear Regression - star rating prediction**")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("RMSE", f"{rating_metrics['rmse']:.4f}")
+    c2.metric("MAE", f"{rating_metrics['mae']:.4f}")
+    c3.metric("R²", f"{rating_metrics['r2']:.4f}")
+
 # Feature importance
 
 # Live Prediction
